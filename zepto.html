@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Zepto Case Study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&family=Caveat:wght@500;600&display=swap">
+<style>
+  /* Palette and type match the portfolio: cool paper, forest green, wine for emphasis. */
+  :root {
+    color-scheme: light;
+    --bg: #F5F6F2; --surface: #FFFFFF; --tint: #E2ECE5; --mist: #E9EFEA;
+    --ink: #16201B; --muted: #56625B; --faint: #7D8982; --line: #DCE2DD;
+    --accent: #1F5B43; --accent-ink: #FFFFFF; --wine: #7A2336;
+    --shadow: 0 30px 60px -30px rgba(20,60,42,.28);
+    --r: 16px;
+    --display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+    --sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "Geist Mono", ui-monospace, Menlo, monospace;
+    --hand: "Caveat", "Segoe Print", "Bradley Hand", cursive;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #0F1512; --surface: #161E1A; --tint: #1B2A22; --mist: #18221D;
+      --ink: #E7EDE9; --muted: #A2AFA7; --faint: #75827A; --line: #26322C;
+      --accent: #74BC98; --accent-ink: #0F1512; --wine: #E0909F;
+      --shadow: 0 30px 60px -30px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0F1512; --surface: #161E1A; --tint: #1B2A22; --mist: #18221D;
+    --ink: #E7EDE9; --muted: #A2AFA7; --faint: #75827A; --line: #26322C;
+    --accent: #74BC98; --accent-ink: #0F1512; --wine: #E0909F;
+    --shadow: 0 30px 60px -30px rgba(0,0,0,.6);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font: 400 17px/1.65 var(--sans);
+    -webkit-font-smoothing: antialiased;
+    padding-inline: clamp(16px, 4vw, 48px);
+    overflow-x: clip;
+  }
+  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+  [id] { scroll-margin-top: 28px; }
+
+  /* Layout: side navigation + content */
+  .layout { display: grid; grid-template-columns: 188px minmax(0, 1fr); gap: clamp(32px, 4vw, 64px); }
+  .toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 28px); align-self: start; padding-top: 56px; max-height: 100dvh; overflow-y: auto; }
+  .toc .label { display: block; margin-bottom: 14px; }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; border-left: 2px solid var(--line); }
+  .toc a { display: block; margin-left: -2px; padding: 6px 0 6px 16px; border-left: 2px solid transparent; font-size: 14px; line-height: 1.35; color: var(--muted); text-decoration: none; transition: color .2s, border-color .2s; }
+  .toc a:hover { color: var(--ink); }
+  .toc a.sub { padding-left: 30px; font-size: 13px; color: var(--faint); }
+  .toc a.on { color: var(--accent); border-left-color: var(--accent); font-weight: 600; }
+  .toc a:focus-visible { outline-offset: -2px; }
+  @media (max-width: 1100px) {
+    .layout { grid-template-columns: minmax(0, 1fr); gap: 0; }
+    [id] { scroll-margin-top: 76px; }
+    .toc { position: sticky; top: 0; z-index: 5; padding: 10px 0; margin-inline: calc(-1 * clamp(16px, 4vw, 48px)); padding-inline: clamp(16px, 4vw, 48px); max-height: none; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+    .toc::-webkit-scrollbar { display: none; }
+    .toc .label { display: none; }
+    .toc ol { display: flex; gap: 6px; border: 0; width: max-content; }
+    .toc a, .toc a.sub { margin: 0; padding: 7px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); font-size: 14px; white-space: nowrap; color: var(--muted); }
+    .toc a.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 500; }
+  }
+
+  /* Ideation sketches */
+  .sketches { margin-top: 40px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; align-items: start; }
+  .sketch { display: grid; gap: 10px; }
+  .sketch .note { font-size: clamp(20px, 2vw, 24px); margin-left: 6px; }
+  .sketch .shot { border-radius: 4px; padding: 8px; transform: rotate(-1deg); }
+  .sketch:nth-child(2) .shot { transform: rotate(.8deg); }
+  .sketch .shot:hover { transform: translateY(-4px) rotate(0); }
+  .changes { margin-top: 64px; }
+  .changes h3 { font-size: clamp(22px, 2.2vw, 26px); }
+  @media (max-width: 900px) { .sketches { grid-template-columns: 1fr; max-width: 560px; } }
+  ::selection { background: var(--tint); }
+  h1, h2, h3, p { margin: 0; }
+  h1, h2, h3 { font-family: var(--display); font-weight: 650; letter-spacing: -.035em; line-height: 1.05; text-wrap: balance; }
+  p { text-wrap: pretty; }
+  img { display: block; max-width: 100%; height: auto; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+
+  .wrap { max-width: 1320px; margin: 0 auto; }
+  .prose { max-width: 660px; display: grid; gap: 18px; }
+  .muted { color: var(--muted); }
+  .label { font: 500 12px/1.2 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+
+  section { padding-top: 120px; }
+  h2 { font-size: clamp(30px, 3.8vw, 44px); }
+  h3 { font-size: clamp(24px, 2.6vw, 32px); }
+
+  /* Nav */
+  nav { height: 68px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { font: 700 20px var(--display); letter-spacing: -.03em; text-decoration: none; }
+  .logo span { color: var(--accent); }
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px; height: 44px; padding: 0 20px;
+    border-radius: 999px; background: var(--accent); color: var(--accent-ink);
+    font: 500 15px var(--sans); text-decoration: none; white-space: nowrap; border: 0; cursor: pointer;
+    transition: transform .3s cubic-bezier(.16,1,.3,1), box-shadow .3s;
+  }
+  .btn:hover { box-shadow: 0 12px 24px -12px rgba(31,91,67,.6); }
+  .btn:active { transform: scale(.98); }
+  .btn.ghost { background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
+
+  /* Hero */
+  .hero { padding-top: 56px; }
+  .chip { display: inline-block; font-size: 14px; font-weight: 500; color: var(--accent); background: var(--tint); padding: 6px 14px; border-radius: 999px; }
+  .hero h1 { margin-top: 24px; font-size: clamp(40px, 6.2vw, 80px); max-width: 20ch; }
+  .hero .dek { margin-top: 22px; font-size: clamp(18px, 2vw, 21px); line-height: 1.5; color: var(--muted); max-width: 40ch; }
+  .meta { margin-top: 28px; font-size: 15px; color: var(--faint); }
+  .hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: clamp(32px, 4vw, 64px); align-items: center; }
+  .hero-grid .hero h1 { font-size: clamp(38px, 4.6vw, 64px); }
+  .hero-shot { padding-top: 56px; }
+  /* Two-column text sections: prose left, supporting material right */
+  .two { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: clamp(32px, 5vw, 80px); align-items: start; }
+  .two .chain, .two .side { margin-top: 0; }
+  .side { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 32px); padding-top: 72px; }
+  .two > .chain { padding-top: 76px; }
+  .two .after { margin-top: 8px; }
+
+  /* Screenshots */
+  .shot {
+    all: unset; box-sizing: border-box; display: block; width: 100%; cursor: zoom-in;
+    border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: var(--surface);
+    box-shadow: var(--shadow);
+    transition: transform .5s cubic-bezier(.16,1,.3,1);
+  }
+  .shot:hover { transform: translateY(-4px); }
+  .shot:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+  figure { margin: 0; }
+  figcaption { margin-top: 12px; font-size: 14px; color: var(--muted); }
+
+  /* Short version */
+  .short { margin-top: 28px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px; }
+  .short div { display: grid; gap: 8px; align-content: start; padding-top: 16px; border-top: 2px solid var(--line); }
+  .short div:first-child { border-top-color: var(--accent); }
+  .short .hand { font-size: 26px; }
+  .short p { font-size: 16px; line-height: 1.6; color: var(--muted); }
+
+  /* Handwritten notes, same Caveat face as the portfolio polaroid */
+  .hand { font-family: var(--hand); font-weight: 600; color: var(--accent); line-height: 1.1; letter-spacing: 0; }
+  .note { display: inline-block; font-family: var(--hand); font-weight: 600; font-size: clamp(22px, 2.4vw, 27px); line-height: 1.1; color: var(--accent); transform: rotate(-2deg); transform-origin: left center; }
+  .note::after { content: " \2193"; }
+  .note.side::after { content: ""; }
+  .hero-shot .note { margin: 0 0 10px 8px; }
+
+  /* Problem */
+  .pull { margin-top: 44px; max-width: 26ch; font: 500 clamp(24px, 2.8vw, 32px)/1.25 var(--display); letter-spacing: -.025em; color: var(--wine); }
+  .math { margin-top: 44px; max-width: 440px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 20px 24px 22px; box-shadow: var(--shadow); transform: rotate(-1.2deg); }
+  .math .hand { font-size: 28px; margin-bottom: 10px; }
+  .math .note.side { margin-top: 12px; font-size: 21px; color: var(--faint); transform: none; }
+  .row { display: flex; justify-content: space-between; gap: 16px; padding: 5px 0; font-size: 15px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .row.total { margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--ink); font-weight: 600; }
+
+  /* Root cause */
+  .chain { margin: 36px 0 0; padding: 0; list-style: none; max-width: 660px; position: relative; display: grid; gap: 28px; }
+  .chain::before { content: ""; position: absolute; left: 7px; top: 10px; bottom: 10px; width: 2px; border-radius: 2px; background: var(--line); }
+  .chain li { position: relative; padding-left: 40px; display: grid; gap: 4px; }
+  .chain li::before { content: ""; position: absolute; left: 1px; top: 4px; width: 14px; height: 14px; border-radius: 50%; background: var(--bg); border: 2px solid var(--faint); }
+  .chain li.root::before { background: var(--accent); border-color: var(--accent); }
+  .chain li.root .label { color: var(--accent); }
+  .chain li.root p { font: 600 clamp(19px, 2vw, 22px)/1.35 var(--display); letter-spacing: -.02em; }
+  .after { margin-top: 36px; max-width: 660px; }
+
+  /* Landscape */
+  .field { margin-top: 36px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .rival { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 22px 24px; }
+  .rival.closest { grid-column: 1 / -1; background: var(--tint); border-color: transparent; }
+  .rival h4 { margin: 0 0 12px; font: 600 19px var(--display); letter-spacing: -.02em; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .rival .tag { font: 500 13px var(--sans); color: var(--accent-ink); background: var(--accent); padding: 3px 10px; border-radius: 999px; letter-spacing: 0; }
+  .rival dl { margin: 0; display: grid; grid-template-columns: 60px 1fr; gap: 6px 12px; font-size: 15px; line-height: 1.5; }
+  .rival dt { color: var(--faint); font-weight: 500; }
+  .rival dd { margin: 0; color: var(--muted); }
+
+  /* Statement */
+  .statement { padding-top: 140px; }
+  .statement p { font: 500 clamp(30px, 4.4vw, 54px)/1.12 var(--display); letter-spacing: -.035em; max-width: 22ch; }
+  .statement span { color: var(--accent); }
+
+  /* Decisions */
+  .decision { padding-top: 96px; display: grid; gap: 32px; }
+  .decision .copy { display: grid; gap: 14px; max-width: 620px; align-content: start; }
+  .decision .label { color: var(--accent); }
+  .decision .copy p { color: var(--muted); }
+  .decision .note { margin-top: 6px; }
+  .wide-copy { max-width: none !important; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); column-gap: 56px; grid-auto-flow: dense; }
+  .wide-copy .label { grid-column: 1; grid-row: 1; align-self: start; }
+  .wide-copy h3 { grid-column: 1; grid-row: 1 / span 3; align-self: start; margin-top: 30px; }
+  .wide-copy p, .wide-copy .note { grid-column: 2; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .split { grid-template-columns: 5fr 7fr; gap: 56px; align-items: start; }
+  .split .copy { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 32px); }
+  .split.flip { grid-template-columns: 7fr 5fr; }
+  .split.flip .copy { order: 2; }
+
+  /* Targets */
+  .targets { margin-top: 32px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .target { border-radius: var(--r); padding: 26px 24px; background: var(--surface); border: 1px solid var(--line); }
+  .target:first-child { background: var(--mist); border-color: transparent; }
+  .target .n { font: 700 clamp(44px, 5vw, 64px)/1 var(--display); letter-spacing: -.05em; font-variant-numeric: tabular-nums; }
+  .target .n sup { font-size: .32em; letter-spacing: 0; color: var(--accent); vertical-align: top; margin-left: 4px; font-weight: 600; }
+  .target p { margin-top: 12px; font-size: 15px; color: var(--muted); line-height: 1.45; max-width: 26ch; }
+
+  /* Open questions */
+  .questions { margin-top: 32px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 36px 48px; max-width: 940px; }
+  .questions div { padding-top: 16px; border-top: 2px solid var(--line); display: grid; gap: 6px; }
+  .questions strong { font: 600 19px/1.3 var(--display); letter-spacing: -.02em; }
+  .questions p { color: var(--muted); }
+
+  /* Contact */
+  .contact { margin-block: 120px 40px; background: var(--accent); color: var(--accent-ink); border-radius: calc(var(--r) + 8px); padding: clamp(28px, 6vw, 72px); display: grid; grid-template-columns: 1.3fr 1fr; gap: 48px; align-items: end; }
+  .contact p.big { font: 600 clamp(28px, 3.6vw, 44px)/1.12 var(--display); letter-spacing: -.035em; max-width: 20ch; }
+  .links { display: grid; }
+  .links .lrow { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 16px 0; border-bottom: 1px solid color-mix(in srgb, var(--accent-ink) 28%, transparent); text-decoration: none; font-size: 16px; }
+  .links .k { opacity: .75; font-size: 14px; }
+  .links .v { user-select: all; overflow-wrap: anywhere; }
+  .signoff { margin-top: 20px; font-family: var(--hand); font-weight: 600; font-size: clamp(28px, 3vw, 36px); line-height: 1; }
+  .copybtn { all: unset; cursor: pointer; font: 500 13px var(--mono); background: color-mix(in srgb, var(--accent-ink) 18%, transparent); padding: 4px 10px; border-radius: 999px; }
+  footer { padding-block: 12px 48px; font-size: 14px; color: var(--muted); }
+
+  /* Lightbox */
+  dialog { border: 0; padding: 0; background: transparent; width: min(1400px, 94vw); max-height: 92dvh; overflow: auto; }
+  dialog::backdrop { background: rgba(10,18,14,.84); }
+  dialog img { width: 100%; border-radius: 12px; }
+  dialog form { position: sticky; top: 0; display: flex; justify-content: flex-end; padding: 8px; }
+
+  /* Motion: hero load sequence; sections ease in with scroll where supported, visible otherwise */
+  @media (prefers-reduced-motion: no-preference) {
+    .hero > * { animation: rise .9s cubic-bezier(.16,1,.3,1) both; }
+    .hero > :nth-child(2) { animation-delay: .08s; }
+    .hero > :nth-child(3) { animation-delay: .16s; }
+    .hero > :nth-child(4) { animation-delay: .24s; }
+    @supports (animation-timeline: view()) {
+      .rv { animation: rise linear both; animation-timeline: view(); animation-range: entry 0% entry 35%; }
+    }
+    @keyframes rise { from { opacity: 0; transform: translateY(18px); } }
+  }
+  @media (prefers-reduced-motion: reduce) { .shot, .btn { transition: none; } .shot:hover { transform: none; } }
+  @media (max-width: 700px) { .math { transform: none; } }
+
+  @media (max-width: 900px) {
+    .split, .split.flip { grid-template-columns: 1fr; gap: 28px; }
+    .split .copy { position: static; }
+    .hero-grid, .two, .wide-copy { grid-template-columns: 1fr; }
+    .wide-copy p, .wide-copy .note, .wide-copy .label, .wide-copy h3 { grid-column: 1; grid-row: auto; margin-top: 0; }
+    .hero-shot { padding-top: 16px; }
+    .side { position: static; padding-top: 0; }
+    .two > .chain { padding-top: 0; }
+    .split.flip .copy { order: 0; }
+    .short { grid-template-columns: 1fr; gap: 28px; }
+    .contact { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 700px) {
+    body { font-size: 16px; }
+    section { padding-top: 88px; }
+    .hero { padding-top: 24px; }
+    .meta { grid-template-columns: 1fr 1fr; }
+    .field, .pair, .questions, .targets { grid-template-columns: 1fr; }
+    .decision { padding-top: 72px; }
+    .statement { padding-top: 100px; }
+  }
+body{margin:0}</style>
+<style>dialog{margin:auto} dialog img{max-height:82dvh;width:auto!important;margin:0 auto} .pair .shot img,.sketch .shot img{width:100%}</style>
+<style>
+  /* Phone mockups drawn in CSS */
+  .phones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
+  .phonecol { display: grid; gap: 12px; justify-items: center; }
+  .phone { width: 100%; max-width: 280px; border-radius: 30px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); padding: 14px 12px 18px; display: grid; gap: 10px; }
+  .phone .bar { height: 5px; width: 60px; border-radius: 9px; background: var(--line); justify-self: center; }
+  .phone .ttl { font: 600 14px var(--display); letter-spacing: -.01em; }
+  .phone .sub { font: 500 10px var(--mono); color: var(--faint); text-transform: uppercase; letter-spacing: .06em; }
+  .pills { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pill { font-size: 11px; padding: 4px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+  .pill.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .tools { display: flex; gap: 6px; }
+  .tools span { flex: 1; text-align: center; font-size: 11px; padding: 6px; border-radius: 8px; background: var(--mist); color: var(--ink); font-weight: 500; }
+  .grid4 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .tile { aspect-ratio: 1; border-radius: 8px; background: var(--mist); display: grid; place-items: end start; padding: 5px; font-size: 9px; color: var(--muted); line-height: 1.15; }
+  .tile.x { outline: 2px dashed var(--wine); outline-offset: -2px; }
+  .grp { font: 600 11px var(--sans); color: var(--ink); margin-top: 2px; }
+  .fade { height: 26px; border-radius: 8px; background: linear-gradient(var(--mist), transparent); font-size: 10px; color: var(--faint); text-align: center; padding-top: 4px; }
+  .tag2 { font: 500 12px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  .tag2.good { color: var(--accent); }
+  /* Heuristic cards */
+  .heur { margin-top: 36px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .heur div { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 22px 24px; display: grid; gap: 8px; align-content: start; }
+  .heur .n { font: 700 34px/1 var(--display); color: var(--wine); letter-spacing: -.04em; }
+  .heur strong { font: 600 19px/1.25 var(--display); letter-spacing: -.02em; }
+  .heur p { color: var(--muted); font-size: 16px; }
+  /* Findings table */
+  .find { margin-top: 32px; display: grid; gap: 0; border-top: 1px solid var(--line); max-width: 940px; }
+  .find div { display: grid; grid-template-columns: 200px 1fr; gap: 24px; padding: 18px 0; border-bottom: 1px solid var(--line); }
+  .find b { font: 600 16px var(--display); }
+  .find p { color: var(--muted); }
+  .proto { margin-top: 28px; display: flex; gap: 12px; flex-wrap: wrap; }
+  @media (max-width: 700px) { .phones, .heur { grid-template-columns: 1fr; } .find div { grid-template-columns: 1fr; gap: 4px; } }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <a class="logo" href="./">Sharvani<span>.</span></a>
+    <a class="btn ghost" href="./#work">&larr; All work</a>
+  </nav>
+  <div class="layout">
+    <aside class="toc" aria-label="Sections">
+      <span class="label">On this page</span>
+      <ol id="toc">
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#short">In short</a></li>
+        <li><a href="#why">Why Zepto</a></li>
+        <li><a href="#problem">The problem</a></li>
+        <li><a href="#heuristics">Heuristics broken</a></li>
+        <li><a href="#ideation">Ideation</a></li>
+        <li><a href="#screens">The redesign</a></li>
+        <li><a href="#testing">Usability testing</a></li>
+        <li><a href="#impact">Business impact</a></li>
+        <li><a href="#questions">Learnings</a></li>
+        <li><a href="#contact">Get in touch</a></li>
+      </ol>
+    </aside>
+    <div>
+      <main>
+        <div class="hero-grid" id="overview">
+          <header class="hero">
+            <span class="chip">Zepto · UX design challenge</span>
+            <h1>Finding a mop shouldn't take two categories.</h1>
+            <p class="dek">Reworking how Zepto groups and filters household products, so people find what they came for without endless scrolling.</p>
+            <p class="meta">Heuristic evaluation · Wireframes · Hi‑fi prototype · Usability testing · Dec 2023</p>
+          </header>
+          <div class="hero-shot">
+            <div class="pair" style="align-items:start"><figure><button class="shot" data-full="zepto/before.png" aria-label="Enlarge screenshot"><img src="zepto/before.png" width="698" height="1310" alt="Zepto before: similar cleaning products split across Cleaning Tools and Cleaning Aids" fetchpriority="high"></button><figcaption>Before: two categories, same products</figcaption></figure><figure><button class="shot" data-full="zepto/after.png" aria-label="Enlarge screenshot"><img src="zepto/after.png" width="450" height="968" alt="Redesigned Cleaning Tools with quick filter pills and a Sort button" loading="lazy"></button><figcaption>After</figcaption></figure></div></div>
+        </div>
+
+        <section class="rv" id="short">
+          <h2>In short</h2>
+          <div class="short">
+            <div><span class="hand">The problem</span><p>Near‑identical cleaning products were split between "Cleaning Aids" under Home Needs and "Cleaning Tools" under Cleaning Essentials, then dumped into one long scroll.</p></div>
+            <div><span class="hand">What I did</span><p>Ran a heuristic evaluation, sketched three directions, built a hi‑fi Figma prototype and tested it with quick‑commerce users.</p></div>
+            <div><span class="hand">The result</span><p>One merged subcategory, items grouped by type, plus sort, filter and quick filter pills — shaped further by what testing surfaced.</p></div>
+          </div>
+        </section>
+
+        <section class="rv two" id="why">
+          <div class="prose">
+            <h2>Why Zepto</h2>
+            <p>I use Zepto regularly, so its friction was my friction. Picking an app from my own week meant I could spot the rough edges from lived experience, not just from screenshots.</p>
+            <p>The project came out of Anudeep Iyyagari's design challenge and workshop. His User Centred Design workbook pushed a plain approach: ask common‑sense questions about the experience, answer them honestly, then check each answer against established heuristics.</p>
+          </div>
+          <aside class="side"><p class="pull">Supermarkets group things the way people think. The app didn't.</p></aside>
+        </section>
+
+        <section class="rv two" id="problem">
+          <div class="prose">
+            <h2>The problem</h2>
+            <p>Browsing for household items, I kept hitting the same wall. Home Needs held a subcategory called Cleaning Aids. Cleaning Essentials held one called Cleaning Tools. The products inside both were largely the same kind of thing — and scattered across the screen in no particular order.</p>
+          </div>
+          <ol class="chain">
+            <li><span class="label">Symptom</span><p>Users scroll a long, unordered list hunting for one item.</p></li>
+            <li><span class="label">Because</span><p>There's no sorting, filtering or grouping to narrow it down.</p></li>
+            <li><span class="label">Because</span><p>Similar products are split across two subcategories in two parents.</p></li>
+            <li class="root"><span class="label">Root cause</span><p>The catalogue follows internal structure, not the mental model of a shopper walking a supermarket aisle.</p></li>
+          </ol>
+        </section>
+
+        <section class="rv" id="heuristics">
+          <div class="prose"><h2>Four heuristics, broken</h2><p class="muted">Mapping the common‑sense observations to Nielsen's heuristics made the gaps concrete.</p></div>
+          <div class="heur">
+            <div><span class="n">01</span><strong>Match between system and the real world</strong><p>Products weren't sorted the way people see them in a store, where items sit together by category.</p></div>
+            <div><span class="n">02</span><strong>Flexibility and efficiency of use</strong><p>Few ways to narrow down to a specific tool; users were stuck in a long list with no shortcuts.</p></div>
+            <div><span class="n">03</span><strong>User control and freedom</strong><p>An endless scroll was the only path, limiting how freely people could explore or jump to what they wanted.</p></div>
+            <div><span class="n">04</span><strong>Recognition rather than recall</strong><p>Comparing items meant remembering details, with little visual cueing to lean on.</p></div>
+          </div>
+        </section>
+
+        <div class="statement rv"><p>Make the app shelve things <span>the way shoppers already think.</span></p></div>
+
+        <section class="rv" id="ideation">
+          <div class="prose"><h2>Ideation</h2><p class="muted">Three directions came out of brainstorming, each answering a different heuristic. They turned out to work best together.</p></div>
+          <div class="short">
+            <div><span class="hand">Group within</span><p>Group items inside a subcategory by type, so mops sit with mops and brushes with brushes.</p></div>
+            <div><span class="hand">Sort &amp; filter</span><p>Add sort and filter controls, plus quick filter pills along the top for one‑tap narrowing.</p></div>
+            <div><span class="hand">Merge the two</span><p>Collapse Cleaning Aids and Cleaning Tools into a single subcategory, so everything lives in one place.</p></div>
+          </div>
+          <div class="sketches" style="grid-template-columns:minmax(0,340px) minmax(0,1fr);align-items:center"><div class="sketch"><span class="note">first on paper</span><figure><button class="shot" data-full="zepto/wireframe.png" aria-label="Enlarge screenshot"><img src="zepto/wireframe.png" width="538" height="1008" alt="Paper wireframe of Cleaning Essentials with filter pills and sort and filter buttons" loading="lazy"></button><figcaption>Paper wireframe: pills on top, Sort and Filter at the bottom.</figcaption></figure></div><p class="muted" style="max-width:420px">I sketched the screen on paper first: category rail on the left, pills across the top, Sort and Filter pinned at the bottom next to the delivery nudge. The strongest version moved into a high‑fidelity Figma prototype.</p></div>
+        </section>
+
+        <section id="screens">
+          <div class="prose rv"><h2>The redesign</h2><p class="muted">What changed on the subcategory screen, and which heuristic each change answers.</p></div>
+
+          <article class="decision rv split">
+            <div class="copy"><span class="label">Structure</span><h3>One subcategory instead of two</h3><p>Cleaning Aids and Cleaning Tools merge into a single home. Shoppers no longer need to guess which parent holds the item they want.</p><span class="note">real‑world match</span></div><div class="pair" style="align-items:start"><figure><button class="shot" data-full="zepto/before.png" aria-label="Enlarge screenshot"><img src="zepto/before.png" width="698" height="1310" alt="Zepto before: similar cleaning products split across Cleaning Tools and Cleaning Aids" loading="lazy"></button><figcaption>Before: the same mop set sits in two categories — Cleaning Tools and Cleaning Aids.</figcaption></figure><figure><button class="shot" data-full="zepto/after.png" aria-label="Enlarge screenshot"><img src="zepto/after.png" width="450" height="968" alt="Redesigned Cleaning Tools with quick filter pills and a Sort button" loading="lazy"></button><figcaption>After: quick filter pills on top, Sort beside the delivery bar.</figcaption></figure></div>
+          </article>
+
+          <article class="decision rv split flip">
+            <div class="copy"><span class="label">Navigation</span><h3>Sort, filter and quick pills</h3><p>Three pills — Toilet &amp; other brushes, Jhaadu/Mops/Wipers, Brooms &amp; Dust pans — sit above the grid. The selected pill shows a clear-cross, and the Filter sheet repeats the same categories alongside brand, price, discount and origin.</p><span class="note">efficiency + control</span></div><div class="pair" style="align-items:start"><figure><button class="shot" data-full="zepto/filter.png" aria-label="Enlarge screenshot"><img src="zepto/filter.png" width="375" height="812" alt="Filter sheet listing categories, brands, price, discount and country of origin" loading="lazy"></button><figcaption>Filter sheet with an active pill still visible above.</figcaption></figure><figure><button class="shot" data-full="zepto/filter-open.png" aria-label="Enlarge screenshot"><img src="zepto/filter-open.png" width="375" height="812" alt="Filter sheet with Categories expanded to four product types" loading="lazy"></button><figcaption>Categories mirror the pills: one mental model, two entry points.</figcaption></figure></div>
+          </article>
+
+          <article class="decision rv">
+            <div class="copy wide-copy"><span class="label">Scanning</span><h3>Grouped shelves you can recognise</h3><p>Labelled groups break the endless list into short, predictable sections. Shoppers compare like with like on screen instead of holding details in their head.</p><span class="note">recognition over recall</span></div>
+          </article>
+
+          <div class="proto rv">
+            <a class="btn" href="https://www.figma.com/proto/idlK9AvddLVJusPkPIiDOn/Zepto-UX-Design-challenge-(sharvani)?page-id=10%3A220&type=design&node-id=29-2589&viewport=493%2C167%2C0.1&scaling=min-zoom&mode=design" target="_blank" rel="noopener">Final prototype ↗</a>
+            <a class="btn ghost" href="https://medium.com/@asharvani0/elevating-user-experience-a-deep-dive-into-zeptos-design-transformation-3d74bc66b244" target="_blank" rel="noopener">Original write‑up ↗</a>
+          </div>
+        </section>
+
+        <section class="rv" id="testing">
+          <div class="prose"><h2>Usability testing</h2><p class="muted">I put the prototype in front of quick‑commerce users to check it worked, and to find what didn't. Each session followed the same five prompts.</p></div>
+          <div class="find">
+            <div><b>Habits</b><p>How often do you use quick‑commerce apps, and which ones?</p></div>
+            <div><b>Finding items</b><p>Walk me through how you found the cleaning tools or home essentials you needed.</p></div>
+            <div><b>The merge</b><p>What do you think of Cleaning Aids and Cleaning Tools becoming one subcategory?</p></div>
+            <div><b>Friction</b><p>Any specific challenges or wins while navigating?</p></div>
+            <div><b>One change</b><p>If you could improve one thing based on this experience, what would it be?</p></div>
+          </div>
+          <p class="muted" style="margin-top:28px;max-width:660px">The observations fed straight into another round of iterations before the final prototype.</p>
+        </section>
+
+        <section class="rv" id="impact">
+          <div class="prose"><h2>Where the business feels it</h2><p class="muted">This was a concept, not a shipped change, so these are the metrics I'd expect it to move rather than measured results.</p></div>
+          <div class="targets">
+            <div class="target"><div class="n">Conv.<sup>↑</sup></div><p>When people can find and filter quickly, more browsing sessions end in a purchase.</p></div>
+            <div class="target"><div class="n">Bounce<sup>↓</sup></div><p>Efficient navigation keeps people exploring instead of leaving a frustrating list.</p></div>
+            <div class="target"><div class="n">CSAT<sup>↑</sup></div><p>An easier shop builds satisfaction, loyalty and word of mouth.</p></div>
+          </div>
+        </section>
+
+        <section class="rv" id="questions">
+          <div class="prose"><h2>What I'd take further</h2><p class="muted">Questions I'd want answered before this reached production.</p></div>
+          <div class="questions">
+            <div><strong>Does the merge scale?</strong><p>Other categories likely have the same overlap. A catalogue‑wide audit would show how far this pattern should go.</p></div>
+            <div><strong>Which pills earn their place?</strong><p>Search and order data should decide the quick filters, not intuition.</p></div>
+            <div><strong>Measure, don't assume</strong><p>An A/B test on time‑to‑add‑to‑cart would turn the expected impact into real numbers.</p></div>
+            <div><strong>Heuristics as a starting point</strong><p>The workshop's common‑sense method found real issues fast; pairing it with analytics would sharpen prioritisation.</p></div>
+          </div>
+        </section>
+
+        <section class="contact rv" id="contact" style="padding-top:clamp(28px,6vw,72px)">
+          <div><p class="big">Want to talk through the process?</p><p class="signoff">— Sharvani</p></div>
+          <div class="links">
+            <a class="lrow" href="https://www.linkedin.com/in/sharvaniux/" target="_blank" rel="noopener"><span class="v">LinkedIn</span><span>&nearr;</span></a>
+          </div>
+        </section>
+      </main>
+      <footer>Sharvani · Senior UX Designer</footer>
+    </div>
+  </div>
+</div>
+
+<dialog id="lightbox" aria-label="Enlarged screenshot"><form method="dialog"><button class="btn ghost">Close</button></form><img alt=""></dialog>
+<script>
+(function () {
+  var dlg=document.getElementById("lightbox"),big=dlg.querySelector("img");
+  document.querySelectorAll(".shot").forEach(function(b){b.addEventListener("click",function(){big.src=b.dataset.full;big.alt=b.querySelector("img").alt;dlg.showModal();});});
+  dlg.addEventListener("click",function(e){if(e.target===dlg)dlg.close();});
+  var tocEl = document.getElementById('toc'), links = {}, current = null;
+  tocEl.querySelectorAll('a').forEach(function (a) { links[a.getAttribute('href').slice(1)] = a; });
+  var targets = Object.keys(links).map(function (id) { return document.getElementById(id); }).filter(Boolean);
+  function setOn(id) {
+    if (id === current) return;
+    if (current) { links[current].classList.remove('on'); links[current].removeAttribute('aria-current'); }
+    links[id].classList.add('on'); links[id].setAttribute('aria-current', 'true'); current = id;
+    var bar = tocEl.parentElement; if (bar.scrollWidth > bar.clientWidth) bar.scrollTo({ left: links[id].offsetLeft - 16, behavior: 'smooth' });
+  }
+  function spy() {
+    var y = innerHeight * .3, pick = targets[0].id;
+    targets.forEach(function (t) { if (t.getBoundingClientRect().top <= y) pick = t.id; });
+    if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4) pick = 'contact';
+    setOn(pick);
+  }
+  var tick = false;
+  addEventListener('scroll', function () { if (!tick) { tick = true; requestAnimationFrame(function () { tick = false; spy(); }); } }, { passive: true });
+  addEventListener('resize', spy); spy();
+  document.querySelectorAll('.copybtn').forEach(function (b) {
+    b.addEventListener('click', function () {
+      try { navigator.clipboard.writeText(b.dataset.copy).then(function () { b.textContent = 'Copied'; }); } catch (e) {}
+      setTimeout(function () { b.textContent = 'Copy'; }, 1800);
+    });
+  });
+})();
+</script>
+
+
+</body>
+</html>

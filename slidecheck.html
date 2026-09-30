@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Slide Check Case Study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&family=Caveat:wght@500;600&display=swap">
+<style>
+  /* Sharvani design system tokens, same layout language as the Compass case study. */
+  :root {
+    color-scheme: light;
+    --bg: #F5F6F2; --surface: #FFFFFF; --tint: #E2ECE5; --mist: #E9EFEA;
+    --ink: #16201B; --muted: #56625B; --faint: #7D8982; --line: #DCE2DD;
+    --accent: #1F5B43; --accent-ink: #FFFFFF; --wine: #7A2336;
+    --shadow: 0 30px 60px -30px rgba(20,60,42,.28);
+    --r: 16px;
+    --display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+    --sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "Geist Mono", ui-monospace, Menlo, monospace;
+    --hand: "Caveat", "Segoe Print", "Bradley Hand", cursive;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #0F1512; --surface: #161E1A; --tint: #1B2A22; --mist: #18221D;
+      --ink: #E7EDE9; --muted: #A2AFA7; --faint: #75827A; --line: #26322C;
+      --accent: #74BC98; --accent-ink: #0F1512; --wine: #E0909F;
+      --shadow: 0 30px 60px -30px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0F1512; --surface: #161E1A; --tint: #1B2A22; --mist: #18221D;
+    --ink: #E7EDE9; --muted: #A2AFA7; --faint: #75827A; --line: #26322C;
+    --accent: #74BC98; --accent-ink: #0F1512; --wine: #E0909F;
+    --shadow: 0 30px 60px -30px rgba(0,0,0,.6);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font: 400 17px/1.65 var(--sans);
+    -webkit-font-smoothing: antialiased;
+    padding-inline: clamp(16px, 4vw, 48px);
+    overflow-x: clip;
+  }
+  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+  [id] { scroll-margin-top: 28px; }
+
+  .layout { display: grid; grid-template-columns: 188px minmax(0, 1fr); gap: clamp(32px, 4vw, 64px); }
+  .toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 28px); align-self: start; padding-top: 56px; max-height: 100dvh; overflow-y: auto; }
+  .toc .label { display: block; margin-bottom: 14px; }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; border-left: 2px solid var(--line); }
+  .toc a { display: block; margin-left: -2px; padding: 6px 0 6px 16px; border-left: 2px solid transparent; font-size: 14px; line-height: 1.35; color: var(--muted); text-decoration: none; transition: color .2s, border-color .2s; }
+  .toc a:hover { color: var(--ink); }
+  .toc a.sub { padding-left: 30px; font-size: 13px; color: var(--muted); }
+  .toc a.on { color: var(--accent); border-left-color: var(--accent); font-weight: 600; }
+  .toc a:focus-visible { outline-offset: -2px; }
+  @media (max-width: 1100px) {
+    .layout { grid-template-columns: minmax(0, 1fr); gap: 0; }
+    [id] { scroll-margin-top: 76px; }
+    .toc { position: sticky; top: 0; z-index: 5; padding: 10px 0; margin-inline: calc(-1 * clamp(16px, 4vw, 48px)); padding-inline: clamp(16px, 4vw, 48px); max-height: none; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+    .toc::-webkit-scrollbar { display: none; }
+    .toc .label { display: none; }
+    .toc ol { display: flex; gap: 6px; border: 0; width: max-content; }
+    .toc a, .toc a.sub { margin: 0; padding: 7px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); font-size: 14px; white-space: nowrap; color: var(--muted); }
+    .toc a.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 500; }
+  }
+
+  ::selection { background: var(--tint); }
+  h1, h2, h3, p { margin: 0; }
+  h1, h2, h3 { font-family: var(--display); font-weight: 650; letter-spacing: -.035em; line-height: 1.05; text-wrap: balance; }
+  p { text-wrap: pretty; }
+  img { display: block; max-width: 100%; height: auto; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+
+  .wrap { max-width: 1320px; margin: 0 auto; }
+  .prose { max-width: 660px; display: grid; gap: 18px; }
+  .muted { color: var(--muted); }
+  .label { font: 500 12px/1.2 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+
+  section { padding-top: 120px; }
+  h2 { font-size: clamp(30px, 3.8vw, 44px); }
+  h3 { font-size: clamp(24px, 2.6vw, 32px); }
+
+  nav { height: 68px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { font: 700 20px var(--display); letter-spacing: -.03em; text-decoration: none; }
+  .logo span { color: var(--accent); }
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px; height: 44px; padding: 0 20px;
+    border-radius: 999px; background: var(--accent); color: var(--accent-ink);
+    font: 500 15px var(--sans); text-decoration: none; white-space: nowrap; border: 0; cursor: pointer;
+    transition: transform .3s cubic-bezier(.16,1,.3,1), box-shadow .3s;
+  }
+  .btn:hover { box-shadow: 0 12px 24px -12px rgba(31,91,67,.6); }
+  .btn:active { transform: scale(.98); }
+  .btn.ghost { background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
+
+  /* Hero */
+  .hero { padding-top: 56px; }
+  .chip { display: inline-block; font-size: 14px; font-weight: 500; color: var(--accent); background: var(--tint); padding: 6px 14px; border-radius: 999px; }
+  .hero h1 { margin-top: 24px; font-size: clamp(32px, 3.4vw, 48px); line-height: 1.08; max-width: 22ch; }
+  .hero .dek { margin-top: 22px; font-size: clamp(18px, 2vw, 21px); line-height: 1.5; color: var(--muted); max-width: 42ch; }
+  .meta { margin-top: 28px; font-size: 15px; color: var(--muted); }
+  .hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: clamp(32px, 4vw, 64px); align-items: center; }
+  .hero-shot { padding-top: 56px; }
+  .two { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: clamp(32px, 5vw, 80px); align-items: start; }
+  .side { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 32px); padding-top: 72px; }
+  .two > .chain { padding-top: 76px; margin-top: 0; }
+
+  /* Screenshots */
+  .shot {
+    all: unset; box-sizing: border-box; display: block; width: 100%; cursor: zoom-in;
+    border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: var(--surface);
+    box-shadow: var(--shadow);
+    transition: transform .5s cubic-bezier(.16,1,.3,1);
+  }
+  .shot:hover { transform: translateY(-4px); }
+  .shot:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+  figure { margin: 0; }
+  figure.narrow { max-width: 400px; width: 100%; justify-self: center; }
+  .pair .shot.tall img { max-height: min(640px, 76vh); }
+  .shot.tall img { width: 100%; max-height: min(760px, 82vh); object-fit: cover; object-position: top; }
+  figcaption { margin-top: 12px; font-size: 14px; color: var(--muted); }
+  figcaption b { color: var(--ink); font-weight: 600; }
+
+  /* In short */
+  .short { margin-top: 28px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px; }
+  .short div { display: grid; gap: 8px; align-content: start; padding-top: 16px; border-top: 2px solid var(--line); }
+  .short div:first-child { border-top-color: var(--accent); }
+  .short .hand { font-size: 26px; }
+  .short p { font-size: 16px; line-height: 1.6; color: var(--muted); }
+
+  .hand { font-family: var(--hand); font-weight: 600; color: var(--accent); line-height: 1.1; letter-spacing: 0; }
+  .note { display: inline-block; font-family: var(--hand); font-weight: 600; font-size: clamp(22px, 2.4vw, 27px); line-height: 1.1; color: var(--accent); transform: rotate(-2deg); transform-origin: left center; }
+  .note::after { content: " \2193"; }
+  .note.plain::after { content: ""; }
+  .hero-shot .note { margin: 0 0 10px 8px; }
+
+  /* Problem */
+  .pull { max-width: 26ch; font: 500 clamp(24px, 2.8vw, 32px)/1.25 var(--display); letter-spacing: -.025em; color: var(--wine); }
+  .card-note { margin-top: 44px; max-width: 440px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 20px 24px 22px; box-shadow: var(--shadow); transform: rotate(-1.2deg); }
+  .card-note .hand { font-size: 28px; margin-bottom: 10px; }
+  .card-note .note { margin-top: 12px; font-size: 21px; color: var(--muted); transform: none; }
+  .row { display: flex; justify-content: space-between; gap: 16px; padding: 5px 0; font-size: 15px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .row .n { font-family: var(--mono); font-size: 13px; }
+  .row.total { margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--ink); font-weight: 600; }
+
+  /* Root cause */
+  .chain { margin: 36px 0 0; padding: 0; list-style: none; max-width: 660px; position: relative; display: grid; gap: 28px; }
+  .chain::before { content: ""; position: absolute; left: 7px; top: 10px; bottom: 10px; width: 2px; border-radius: 2px; background: var(--line); }
+  .chain li { position: relative; padding-left: 40px; display: grid; gap: 4px; }
+  .chain li::before { content: ""; position: absolute; left: 1px; top: 4px; width: 14px; height: 14px; border-radius: 50%; background: var(--bg); border: 2px solid var(--faint); }
+  .chain li.root::before { background: var(--accent); border-color: var(--accent); }
+  .chain li.root .label { color: var(--accent); }
+  .chain li.root p { font: 600 clamp(19px, 2vw, 22px)/1.35 var(--display); letter-spacing: -.02em; }
+  .after { margin-top: 8px; }
+
+  /* Existing tools */
+  .field { margin-top: 36px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .rival { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 22px 24px; }
+  .rival.closest { grid-column: 1 / -1; background: var(--tint); border-color: transparent; }
+  .rival.mine { background: var(--mist); border-color: transparent; }
+  .rival h4 { margin: 0 0 12px; font: 600 19px var(--display); letter-spacing: -.02em; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .rival .tag { font: 500 13px var(--sans); color: var(--accent-ink); background: var(--accent); padding: 3px 10px; border-radius: 999px; letter-spacing: 0; }
+  .rival.mine .tag { background: var(--surface); color: var(--accent); }
+  .rival dl { margin: 0; display: grid; grid-template-columns: 60px 1fr; gap: 6px 12px; font-size: 15px; line-height: 1.5; }
+  .rival dt { color: var(--muted); font-weight: 500; }
+  .rival dd { margin: 0; color: var(--muted); }
+  .src { margin-top: 16px; font-size: 14px; color: var(--muted); }
+
+  /* Statement */
+  .statement { padding-top: 140px; }
+  .statement p { font: 500 clamp(30px, 4.4vw, 54px)/1.12 var(--display); letter-spacing: -.035em; max-width: 22ch; }
+  .statement span { color: var(--accent); }
+
+  /* Key screens */
+  .decision { padding-top: 96px; display: grid; gap: 32px; }
+  .decision .copy { display: grid; gap: 14px; max-width: 620px; align-content: start; }
+  .decision .label { color: var(--accent); }
+  .decision .copy p { color: var(--muted); }
+  .decision .note { margin-top: 6px; }
+  .wide-copy { max-width: none !important; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); column-gap: 56px; grid-auto-flow: dense; }
+  .wide-copy .label { grid-column: 1; grid-row: 1; align-self: start; }
+  .wide-copy h3 { grid-column: 1; grid-row: 1 / span 3; align-self: start; margin-top: 30px; }
+  .wide-copy p, .wide-copy .note { grid-column: 2; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; max-width: 860px; }
+  .pair.trio { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; max-width: 1040px; }
+  .pair.trio .shot.tall img { max-height: min(600px, 72vh); }
+  .split { grid-template-columns: 6fr 5fr; gap: 56px; align-items: start; }
+  .split .copy { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 32px); }
+  .split.flip { grid-template-columns: 5fr 6fr; }
+  .split.flip .copy { order: 2; }
+
+  /* Measures */
+  .targets { margin-top: 32px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; max-width: 940px; }
+  .target { border-radius: var(--r); padding: 26px 24px; background: var(--surface); border: 1px solid var(--line); }
+  .target:first-child { background: var(--mist); border-color: transparent; }
+  .target .n { font: 700 clamp(34px, 3.6vw, 48px)/1 var(--display); letter-spacing: -.045em; }
+  .target .u { margin-top: 6px; font: 600 15px var(--sans); color: var(--accent); }
+  .target p { margin-top: 12px; font-size: 15px; color: var(--muted); line-height: 1.45; max-width: 28ch; }
+  .signal { margin-top: 16px; background: var(--tint); border-radius: var(--r); padding: 24px 26px; display: grid; grid-template-columns: auto 1fr; gap: 6px 18px; align-items: start; max-width: 940px; }
+  .signal .hand { font-size: 26px; grid-row: 1 / span 2; padding-top: 2px; }
+  .signal p { color: var(--ink); font-size: 16px; }
+
+  /* Next */
+  .questions { margin-top: 32px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 36px 48px; max-width: 940px; }
+  .questions div { padding-top: 16px; border-top: 2px solid var(--line); display: grid; gap: 6px; align-content: start; }
+  .questions div.lesson { border-top-color: var(--accent); }
+  .questions strong { font: 600 19px/1.3 var(--display); letter-spacing: -.02em; }
+  .questions p { color: var(--muted); }
+
+  /* Contact */
+  .contact { margin-block: 120px 40px; background: var(--accent); color: var(--accent-ink); border-radius: calc(var(--r) + 8px); padding: clamp(28px, 6vw, 72px); display: grid; grid-template-columns: 1.3fr 1fr; gap: 48px; align-items: end; }
+  .contact p.big { font: 600 clamp(28px, 3.6vw, 44px)/1.12 var(--display); letter-spacing: -.035em; max-width: 20ch; }
+  .links { display: grid; }
+  .links .lrow { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 16px 0; border-bottom: 1px solid color-mix(in srgb, var(--accent-ink) 28%, transparent); text-decoration: none; font-size: 16px; }
+  .links .k { opacity: .75; font-size: 14px; }
+  .links .v { user-select: all; overflow-wrap: anywhere; }
+  .signoff { margin-top: 20px; font-family: var(--hand); font-weight: 600; font-size: clamp(28px, 3vw, 36px); line-height: 1; }
+  .copybtn { all: unset; cursor: pointer; font: 500 13px var(--mono); background: color-mix(in srgb, var(--accent-ink) 18%, transparent); padding: 4px 10px; border-radius: 999px; }
+  footer { padding-block: 12px 48px; font-size: 14px; color: var(--muted); }
+
+  dialog { border: 0; padding: 0; background: transparent; width: min(1400px, 94vw); max-height: 92dvh; overflow: auto; }
+  dialog.narrow { width: min(560px, 94vw); }
+  dialog::backdrop { background: rgba(10,18,14,.84); }
+  dialog img { width: 100%; border-radius: 12px; }
+  dialog form { position: sticky; top: 0; display: flex; justify-content: flex-end; padding: 8px; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .hero > * { animation: rise .9s cubic-bezier(.16,1,.3,1) both; }
+    .hero > :nth-child(2) { animation-delay: .08s; }
+    .hero > :nth-child(3) { animation-delay: .16s; }
+    .hero > :nth-child(4) { animation-delay: .24s; }
+    @supports (animation-timeline: view()) {
+      .rv { animation: rise linear both; animation-timeline: view(); animation-range: entry 0% entry 35%; }
+    }
+    @keyframes rise { from { opacity: 0; transform: translateY(18px); } }
+  }
+  @media (prefers-reduced-motion: reduce) { .shot, .btn { transition: none; } .shot:hover { transform: none; } }
+
+  @media (max-width: 900px) {
+    .split, .split.flip { grid-template-columns: 1fr; gap: 28px; }
+    .split .copy { position: static; }
+    .hero-grid, .two, .wide-copy { grid-template-columns: 1fr; }
+    .wide-copy p, .wide-copy .note, .wide-copy .label, .wide-copy h3 { grid-column: 1; grid-row: auto; margin-top: 0; }
+    .hero-shot { padding-top: 16px; }
+    .side { position: static; padding-top: 0; }
+    .two > .chain { padding-top: 0; }
+    .split.flip .copy { order: 0; }
+    .short { grid-template-columns: 1fr; gap: 28px; }
+    .contact { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 700px) {
+    body { font-size: 16px; }
+    section { padding-top: 88px; }
+    .hero { padding-top: 24px; }
+    .card-note { transform: none; }
+    .field, .pair, .questions, .targets { grid-template-columns: 1fr; }
+    .pair figure { max-width: 400px; }
+    .pair.trio { grid-template-columns: 1fr; }
+    .signal { grid-template-columns: 1fr; }
+    .signal .hand { grid-row: auto; }
+    .decision { padding-top: 72px; }
+    .statement { padding-top: 100px; }
+  }
+body{margin:0}</style>
+
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <a class="logo" href="./">Sharvani<span>.</span></a>
+    <a class="btn ghost" href="./#work">&larr; All work</a>
+  </nav>
+  <div class="layout">
+    <aside class="toc" aria-label="Sections">
+      <span class="label">On this page</span>
+      <ol id="toc"></ol>
+    </aside>
+    <div>
+      <main id="app"></main>
+      <footer id="foot"></footer>
+    </div>
+  </div>
+</div>
+
+<dialog id="lightbox" aria-label="Enlarged screenshot">
+  <form method="dialog"><button class="btn ghost">Close</button></form>
+  <img alt="">
+</dialog>
+
+<script>
+/* Case study content. `note` fields render as handwritten margin notes. */
+window.CASE = {
+  co: "FactSet",
+  title: "Slide Check & Model Check: catching brand-rule mistakes in slides and Excel sheets, before a senior banker sees them.",
+  dek: "A tool I designed at FactSet. It checks a PowerPoint deck or an Excel model against the company's brand rules, and shows exactly what needs fixing — right inside the sidebar bankers already use every day.",
+  meta: "Senior UX Designer, full project. Phase 1 tested with stakeholders.",
+  heroNote: "it opens inside PowerPoint, not as a new app",
+  hero: { src: "screens/lives-in-sidebar.png", w: 1600, h: 832,
+    alt: "Slide Check open in the FactSet Sidebar, docked on the right of a PowerPoint window. The Rules tab shows selected slides, a Default profile, and rule groups for layout, title and content, with a Run Check button." },
+
+  short: {
+    h: "In short",
+    items: [
+      ["The problem", "Brand rules live in long guideline documents, not inside PowerPoint or Excel. Junior bankers check every slide by eye, usually late at night, and one small miss can get the whole deck sent back."],
+      ["What I designed", "A checker inside the FactSet sidebar. Pick which rule groups and slides to check, run it, and review every issue with a plain Problem and Fix. Nothing changes until the banker says so."],
+      ["Where it stands", "Phase 1 was tested with stakeholders, on their own decks and models, before I left FactSet in June 2025."]
+    ]
+  },
+
+  why: {
+    h: "Why it was needed",
+    p: [
+      "At an investment bank, every presentation and every Excel model has to follow the company's brand rules before it can go to a client or a senior banker. Which font. Which colors. How a slide is laid out. Where the footer and slide number sit.",
+      "The people who build these files are junior bankers: analysts and associates working to tight deadlines, often overnight. Their usual loop was build, check by hand against the brand guide, send up for review, then fix whatever came back with very little time left.",
+      "Checking formatting by eye is slow, repeated work. It is also easy to miss at 11pm when the deck is due at 8am."
+    ],
+    pull: "One small mistake can make a senior banker think the whole piece of work is careless, even when the numbers are right.",
+    card: {
+      label: "the rulebook, in six groups",
+      rows: [["Layout & shape", "01"], ["Title", "02"], ["Content", "03"], ["Footer", "04"], ["Slide number", "05"], ["Color", "06"]],
+      total: ["Checked by hand before", "every slide"],
+      note: "straight from the tool's rule list"
+    }
+  },
+
+  root: {
+    h: "Finding the root cause",
+    intro: "Before UX, I was a dentist. One habit stayed with me: don't treat the symptom. So I kept asking why decks kept coming back.",
+    chain: [
+      ["What bankers said", "Decks come back from review for formatting, hours before a client meeting."],
+      ["Why?", "Formatting is checked by eye, slide by slide, at the end of a long day."],
+      ["Why?", "The rules live in separate guideline documents, outside PowerPoint and Excel, and not everyone remembers them the same way."],
+      ["Diagnosis", "The check has to happen where the work happens, before the file reaches a senior banker."]
+    ],
+    after: "That set the brief. Not a new app, and not an auto-fixer. A checker in the panel bankers already had open, that points to the problem and leaves the decision with them."
+  },
+
+  field: {
+    h: "Existing tools",
+    intro: "Bankers already had formatting help. None of it knew this company's own rulebook, or lived in the sidebar they already used.",
+    rivals: [
+      { name: "Macabacus", tag: "Closest", strong: "Widely used by bankers, with its own Deck Check and Model Check and a one-click full scan.", gap: "One general standard set up per company, in its own separate add-in." },
+      { name: "Other formatting add-ins", strong: "Speed up formatting by hand.", gap: "No company-specific rules built in. You still check one thing at a time." },
+      { name: "Slide Check & Model Check", tag: "This project", mine: true, strong: "Different rulebooks (profiles) for different teams or formats, inside the FactSet sidebar. You pick what to check.", gap: "Phase 1 checks written rules only. It doesn't infer new ones yet." }
+    ],
+    src: "Macabacus details from its Deck Check and Model Check feature pages on macabacus.com."
+  },
+
+  statement: ["Bankers are responsible for every number and every slide.", "So the tool points, and the banker decides."],
+
+  decisions: {
+    h: "Key screens",
+    intro: "Real screenshots, taken inside the FactSet sidebar. This is the flow a banker goes through, start to finish.",
+    items: [
+      { id: "rules", screen: "Rules", layout: "wide", h: "Let people pick what to check.",
+        p: ["A banker doing a two-minute check before a call needs something different from a full review. So the Rules tab lets you run all slides or type exact slide numbers, like 1-3, 6, 9-18. Introduction and thank-you slides are skipped automatically, and the info icon says so, so nobody wonders why they weren't checked.",
+            "Rule groups open to show every rule inside, like “Title font size incorrect” or “Footer missing or misaligned”. Run Check stays off until at least one rule is picked, so nobody runs an empty check. Profiles sit above the rules, so a second team or a different client format gets its own rulebook without breaking the first."],
+        note: "a quick check and a full review use the same screen",
+        shots: [
+          { src: "screens/rules-slides-tooltip.png", w: 614, h: 1334, tall: true, alt: "Slide Check Rules tab with Select slides chosen, profile P1, and a tooltip saying Introduction and Thank you slides are excluded from selection. Rule groups are closed.", cap: "<b>Choose slides.</b> Intro and thank-you slides are left out, and the tooltip says why." },
+          { src: "screens/rules-none-selected.png", w: 614, h: 1852, tall: true, alt: "Slide Check Rules tab with every rule group open and no rules ticked. The Run Check button is disabled.", cap: "<b>See every rule.</b> Run Check stays off until something is picked." },
+          { src: "screens/rules-selected.png", w: 614, h: 1942, tall: true, alt: "Slide Check Rules tab with slides 1-3, 6, 9-18 and 20 entered, the Default profile, and several rules ticked. The Run Check button is active.", cap: "<b>Pick rules.</b> Chosen rules are highlighted, and Run Check turns on." }
+        ] },
+      { id: "run", screen: "Run check", layout: "split", h: "Say what's happening, plainly.",
+        p: ["Reading a whole deck takes a moment, and PowerPoint pauses while it happens. A frozen window at midnight feels like a crash.",
+            "So the loading screen says exactly what is going on: “We're gathering information from your slides. PowerPoint will be temporarily unavailable during this step.” And if the banker started the wrong check, Cancel gets them out without waiting."],
+        note: "a pause you can explain is not a bug",
+        shots: [{ src: "screens/running-cancel.png", w: 614, h: 820, alt: "Slide Check loading screen with a green spinner, the message We're gathering information from your slides. PowerPoint will be temporarily unavailable during this step, and a Cancel button.", cap: "<b>Run the check.</b> A clear message, and a way out." }] },
+      { id: "findings", screen: "Findings", layout: "wide", h: "Never fix anything without asking.",
+        p: ["Findings open as a short summary first: the total number of issues, then each slide with its own count. The banker sees where the problems are before reading any of them.",
+            "Open a slide and every issue has a plain-language Problem, a suggested Fix, and Dismiss or Fix buttons. For an off-brand color, Fix opens the approved palette to choose from. Nothing changes on its own. Bankers answer for what goes to a client, so they needed to see and approve every change themselves.",
+            "This first version checks against rules the company has already written down. It doesn't try to guess new rules. That was the right cut to ship something real and useful quickly, with smarter rule detection as a clear next step."],
+        note: "dismiss is a valid answer",
+        shots: [
+          { src: "screens/findings-summary.png", w: 614, h: 760, alt: "Slide Check Findings tab showing 5 issues, grouped by slide: slide 5 with 3, slide 6 with 1, slide 8 with 4 and slide 11 with 1.", cap: "<b>See where.</b> Issues grouped by slide, with a count for each." },
+          { src: "screens/findings-detail.png", w: 614, h: 2804, tall: true, alt: "Slide Check Findings tab with slide 5 open, listing issues such as Title Font Size Inconsistent and Off-brand color usage, each with a Problem, a Fix, and Dismiss or Fix buttons, plus a color picker for the fix.", cap: "<b>Fix or dismiss.</b> Every issue with its problem and fix. Click to see the full list." }
+        ] }
+    ]
+  },
+
+  targets: {
+    h: "Did it work",
+    note: "These are the metrics we planned to analyse. I left FactSet in June 2025 and no longer have the final numbers.",
+    items: [["Error reduction", "rate, from CX surveys", "Whether fewer brand-rule mistakes reach senior bankers and clients, as reported by users in CX surveys."], ["Run checks", "number of checks run", "How often bankers run a check on their own. If they keep coming back, they trust it."], ["Errors identified", "number found by the tool", "How many brand-rule mistakes the tool catches before the file goes up for review."], ["Time on task", "per deck or model", "How long it takes to check a file against the brand rules, compared with checking by hand."]],
+    signal: ["early sign", "In the first round of testing, stakeholders ran the tool on their own decks and models. They caught mistakes they said they would otherwise have missed, and found it useful."]
+  },
+
+  open: {
+    h: "What's next",
+    intro: "What I'd build after phase 1, and the one thing I'd carry into any tool like this.",
+    items: [
+      ["Measure it inside the tool", "Track time saved and mistakes caught right in the sidebar, so these four metrics are tracked automatically."],
+      ["Catch harder mistakes", "Like numbers that don't match across two slides, which a formatting rule can't see today."],
+      ["Let teams own their rules", "Update brand rules and profiles without needing an engineer every time."],
+      ["What I learned", "The most useful decision wasn't the checking. It was letting bankers choose what gets checked, and never changing anything without their say-so. A tool earns trust by staying clear and easy to control.", true]
+    ]
+  },
+
+  close: "Want to see the Model Check side in Excel, or talk through the rule design? I'd be glad to walk you through it.",
+  author: { name: "Sharvani A", role: "Senior UX Designer", email: "asharvani0@gmail.com", linkedin: "https://www.linkedin.com/in/sharvaniux/" }
+};
+</script>
+<script>
+(function () {
+  var C = window.CASE;
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+  var shot = function (s, eager, narrow) {
+    return '<figure' + (narrow ? ' class="narrow"' : '') + '><button class="shot' + (s.tall ? ' tall' : '') + '" data-full="' + s.src + '" data-narrow="' + (s.w < 900 ? 1 : 0) + '" aria-label="Enlarge screenshot"><img src="' + s.src + '" width="' + s.w + '" height="' + s.h + '" alt="' + esc(s.alt) + '"' + (eager ? ' fetchpriority="high"' : ' loading="lazy"') + '></button>' + (s.cap ? '<figcaption>' + s.cap + '</figcaption>' : '') + '</figure>';
+  };
+  var ps = function (arr) { return arr.map(function (p) { return '<p>' + esc(p) + '</p>'; }).join(''); };
+  var h = '';
+
+  h += '<div class="hero-grid" id="overview"><header class="hero"><span class="chip">' + esc(C.co) + '</span><h1>' + esc(C.title) + '</h1><p class="dek">' + esc(C.dek) + '</p>';
+  h += '<p class="meta">' + esc(C.meta) + '</p></header>';
+  h += '<div class="hero-shot"><span class="note">' + esc(C.heroNote) + '</span>' + shot(C.hero, true) + '</div></div>';
+
+  h += '<section class="rv" id="short"><h2>' + C.short.h + '</h2><div class="short">' + C.short.items.map(function (g) { return '<div><span class="hand">' + g[0] + '</span><p>' + esc(g[1]) + '</p></div>'; }).join('') + '</div></section>';
+
+  var W = C.why;
+  h += '<section class="rv two" id="problem"><div class="prose"><h2>' + W.h + '</h2>' + ps(W.p) + '</div><aside class="side"><p class="pull">' + esc(W.pull) + '</p>';
+  h += '<div class="card-note"><p class="hand">' + W.card.label + '</p>' + W.card.rows.map(function (r) { return '<div class="row"><span>' + esc(r[0]) + '</span><span class="n">' + r[1] + '</span></div>'; }).join('') + '<div class="row total"><span>' + W.card.total[0] + '</span><span>' + W.card.total[1] + '</span></div><span class="note plain">' + esc(W.card.note) + '</span></div></aside></section>';
+
+  var R = C.root;
+  h += '<section class="rv two" id="root"><div class="prose"><h2>' + R.h + '</h2><p>' + esc(R.intro) + '</p><p class="after">' + esc(R.after) + '</p></div><ol class="chain">' + R.chain.map(function (c, i) { return '<li' + (i === R.chain.length - 1 ? ' class="root"' : '') + '><span class="label">' + c[0] + '</span><p>' + esc(c[1]) + '</p></li>'; }).join('') + '</ol></section>';
+
+  var F = C.field;
+  h += '<section class="rv" id="landscape"><div class="prose"><h2>' + F.h + '</h2><p class="muted">' + esc(F.intro) + '</p></div><div class="field">' + F.rivals.map(function (r, i) {
+    return '<div class="rival' + (i === 0 ? ' closest' : '') + (r.mine ? ' mine' : '') + '"><h4>' + esc(r.name) + (r.tag ? '<span class="tag">' + r.tag + '</span>' : '') + '</h4><dl><dt>Strong</dt><dd>' + esc(r.strong) + '</dd><dt>Gap</dt><dd>' + esc(r.gap) + '</dd></dl></div>';
+  }).join('') + '</div><p class="src">' + esc(F.src) + '</p></section>';
+
+  h += '<div class="statement rv"><p>' + esc(C.statement[0]) + ' <span>' + esc(C.statement[1]) + '</span></p></div>';
+
+  var D = C.decisions;
+  h += '<section id="screens"><div class="prose rv"><h2>' + D.h + '</h2><p class="muted">' + esc(D.intro) + '</p></div>';
+  D.items.forEach(function (d) {
+    var isSplit = d.layout.indexOf('split') === 0;
+    var media = d.shots.length > 1 ? '<div class="pair' + (d.shots.length > 2 ? ' trio' : '') + '">' + d.shots.map(function (s) { return shot(s); }).join('') + '</div>' : shot(d.shots[0], false, true);
+    h += '<article id="' + d.id + '" class="decision rv' + (isSplit ? ' ' + d.layout : '') + '"><div class="copy' + (isSplit ? '' : ' wide-copy') + '"><span class="label">' + d.screen + '</span><h3>' + esc(d.h) + '</h3>' + ps(d.p) + (d.note ? '<span class="note">' + esc(d.note) + '</span>' : '') + '</div>' + media + '</article>';
+  });
+  h += '</section>';
+
+  var T = C.targets;
+  h += '<section class="rv" id="goals"><div class="prose"><h2>' + T.h + '</h2><p class="muted">' + esc(T.note) + '</p></div><div class="targets">' + T.items.map(function (t) { return '<div class="target"><div class="n">' + esc(t[0]) + '</div><div class="u">' + esc(t[1]) + '</div><p>' + esc(t[2]) + '</p></div>'; }).join('') + '</div>';
+  h += '<div class="signal"><span class="hand">' + T.signal[0] + '</span><p>' + esc(T.signal[1]) + '</p></div></section>';
+
+  var O = C.open;
+  h += '<section class="rv" id="next"><div class="prose"><h2>' + O.h + '</h2><p class="muted">' + esc(O.intro) + '</p></div><div class="questions">' + O.items.map(function (q) { return '<div' + (q[2] ? ' class="lesson"' : '') + '><strong>' + esc(q[0]) + '</strong><p>' + esc(q[1]) + '</p></div>'; }).join('') + '</div></section>';
+
+  var A = C.author;
+  h += '<section class="contact rv" id="contact" style="padding-top:clamp(28px,6vw,72px)"><div><p class="big">' + esc(C.close) + '</p></div><div class="links">' +
+    '<div class="lrow"><span class="k">Email</span><span class="v">' + A.email + '</span><button class="copybtn" data-copy="' + A.email + '">Copy</button></div>' +
+    '<a class="lrow" href="' + A.linkedin + '" target="_blank" rel="noopener"><span>Go to LinkedIn &nearr;</span></a></div></section>';
+
+  document.getElementById('app').innerHTML = h;
+
+  var nav = [["overview", "Overview"], ["short", "In short"], ["problem", "The problem"], ["root", "Root cause"], ["landscape", "Existing tools"], ["screens", "Key screens"]]
+    .concat(D.items.map(function (d) { return [d.id, d.screen, 1]; }))
+    .concat([["goals", "Did it work"], ["next", "What's next"], ["contact", "Get in touch"]]);
+  var tocEl = document.getElementById('toc');
+  tocEl.innerHTML = nav.map(function (n) { return '<li><a href="#' + n[0] + '"' + (n[2] ? ' class="sub"' : '') + '>' + esc(n[1]) + '</a></li>'; }).join('');
+  var links = {}; tocEl.querySelectorAll('a').forEach(function (a) { links[a.getAttribute('href').slice(1)] = a; });
+  var current = null;
+  var setOn = function (id) {
+    if (id === current || !links[id]) return;
+    if (current) { links[current].classList.remove('on'); links[current].removeAttribute('aria-current'); }
+    links[id].classList.add('on'); links[id].setAttribute('aria-current', 'true');
+    current = id;
+    var bar = tocEl.parentElement;
+    if (bar.scrollWidth > bar.clientWidth) { var l = links[id]; bar.scrollTo({ left: l.offsetLeft - 16, behavior: 'smooth' }); }
+  };
+  var targets = nav.map(function (n) { return document.getElementById(n[0]); }).filter(Boolean);
+  var spy = function () {
+    var y = window.innerHeight * 0.3, pick = targets[0].id;
+    targets.forEach(function (t) { if (t.getBoundingClientRect().top <= y) pick = t.id; });
+    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) pick = 'contact';
+    setOn(pick);
+  };
+  var ticking = false;
+  window.addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(function () { ticking = false; spy(); }); } }, { passive: true });
+  window.addEventListener('resize', spy);
+  spy();
+  document.getElementById('foot').textContent = A.name + ' · ' + A.role;
+
+  var dlg = document.getElementById('lightbox'), big = dlg.querySelector('img');
+  document.querySelectorAll('.shot').forEach(function (b) {
+    b.addEventListener('click', function () {
+      big.src = b.dataset.full; big.alt = b.querySelector('img').alt;
+      dlg.classList.toggle('narrow', b.dataset.narrow === '1');
+      dlg.showModal();
+    });
+  });
+  dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
+
+  document.querySelectorAll(".copybtn").forEach(function (b) {
+    b.addEventListener('click', function () {
+      var t = b.dataset.copy, sel = function () { var r = document.createRange(); r.selectNodeContents(b.previousElementSibling); getSelection().removeAllRanges(); getSelection().addRange(r); b.textContent = 'Selected'; };
+      try { navigator.clipboard.writeText(t).then(function () { b.textContent = 'Copied'; }, sel); } catch (e) { sel(); }
+      setTimeout(function () { b.textContent = 'Copy'; }, 1800);
+    });
+  });
+})();
+</script>
+
+
+</body>
+</html>
